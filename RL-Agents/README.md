@@ -172,4 +172,76 @@ In your code: loc=22.5 ($\mu$) and scale=5 ($\sigma$).
 This creates a predictable bell curve of throughput centered around 22.5 Mbps.
 
 
+## experiments.py
+
+The Experiment class is the actual experiment. It initializes the ExperimentLogger ( Which is very useful) with a timestamped name and creates placeholders for various Matplotlib figures. This ensures every run is uniquely identifiable for later analysis. 
+
+---
+
+Basically experimentlogger records the data from every trial.  
+
+Apart from the initialization part, we use it when the logger's log_step function is called at the end of every iteration. This captures a snapshot of the agent's performance and internal state.
+
+---
+
+### run(n_trials)
+
+This is the core loop. For each trial, it:
+
+Selects an Action: Asks the agent for an arm (channel or device).  
+Interacts: Calls env.get_reward() to get the throughput.  
+Learns: Updates the agent’s internal Q-values based on that reward.  
+Visualizes: Triggers the live plot updates so you can see the learning happen in real-time.
+
+---
+
+### plot() & plot_avg_reward_per_arm_over_time()
+
+These are post-experiment analysis tools. They generate static, high-quality "ggplot" style charts showing the cumulative average reward and a comparative bar chart of which channel performed best overall.
+
+---
+
+### update_live_main_plot()
+
+Creates a dynamic dashboard during the run. It clears and redraws the main figure to show:
+
+Top Plot: The running average of rewards (cumulative throughput).  
+Bottom Plot: A bar chart comparing the performance of all arms.  
+Subtitle: A live "Best Estimated" indicator showing which choice the agent currently favors.
+
+---
+
+### update_live_arm_plots() & _for_each()
+
+These track the Learning Curve (Q-values) for every individual arm.
+
+They implement a "Zoom Fix": because the agent starts with an optimistic value (500) and the rewards are much lower (15-40), the plot automatically ignores the initial "drop" to focus on the stabilized learning range.
+
+The _for_each version spawns independent windows for every channel, allowing you to monitor each frequency's stability separately.
+
+---
+
+📐 Formulas and Logic (Sutton & Barto)
+
+The class calculates and visualizes the Sample-Average Method to show how well the agent is doing compared to its history:
+
+---
+
+### Cumulative Average Reward
+
+At each step $t$, the "Average Reward vs Steps" plot calculates:
+
+$$\text{Average Reward}_t = \frac{1}{t} \sum_{i=1}^{t} R_i$$
+
+This is the standard metric in Sutton and Barto to check if the agent is converging. If the line trends upward and levels off, the agent has successfully identified the best channel.
+
+---
+
+### Q-Value History (The Learning Curve)
+
+The individual arm plots visualize the internal state of the Agent's memory:
+
+$$Q_t(a) \approx \mathbb{E}[R_t \mid A_t = a]$$
+
+By plotting these over time, you can see the Optimistic Initial Value effect: the value starts high (500), drops sharply upon the first sample, and then uses your Exponential Smoothing formula to settle on the true mean of the network's throughput.
 
