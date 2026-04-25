@@ -35,9 +35,7 @@ class MQTTClient:
                 client.subscribe(MQTT_STATUS_TOPIC)
                 logger.info(f"Subscribed to status topic: {MQTT_STATUS_TOPIC}")
 
-            # Removed subscriptions to "state/+" and "response/+"
-            # If you want to subscribe to other specific topics, add them here.
-            # Example: client.subscribe("my/specific/topic")
+      
 
         else:
             self.is_connected = False
